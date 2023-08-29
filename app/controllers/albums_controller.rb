@@ -3,11 +3,9 @@
 class AlbumsController < ApplicationController
   include Playable
 
-  layout proc { "dialog" unless turbo_native? }, only: :edit
-
-  before_action :require_admin, only: [:edit, :update]
+  before_action :require_admin, only: [:update]
   before_action :find_album, except: [:index]
-  before_action :get_sort_options, only: [:index]
+  before_action :get_sort_option, only: [:index]
 
   def index
     records = Album.includes(:artist)
@@ -20,9 +18,6 @@ class AlbumsController < ApplicationController
   def show
     @songs = @album.songs.includes(:artist)
     @album.attach_image_from_discogs
-  end
-
-  def edit
   end
 
   def update
@@ -61,7 +56,7 @@ class AlbumsController < ApplicationController
     [params[:sort], params[:sort_direction]]
   end
 
-  def get_sort_options
-    @sort_options = Album.sort_options
+  def get_sort_option
+    @sort_option = Album::SORT_OPTION
   end
 end

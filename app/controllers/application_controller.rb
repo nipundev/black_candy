@@ -21,12 +21,14 @@ class ApplicationController < ActionController::Base
     logout_current_user
   end
 
-  def need_transcode?(format)
-    return true unless format.in?(Stream::SUPPORTED_FORMATS)
-    return true if safari? && !format.in?(Stream::SAFARI_SUPPORTED_FORMATS)
-    return true if turbo_ios? && !format.in?(Stream::IOS_SUPPORTED_FORMATS)
+  def need_transcode?(song)
+    song_format = song.format
 
-    Setting.allow_transcode_lossless ? format.in?(Stream::LOSSLESS_FORMATS) : false
+    return true unless song_format.in?(Stream::SUPPORTED_FORMATS)
+    return true if browser.safari? && !song_format.in?(Stream::SAFARI_SUPPORTED_FORMATS)
+    return true if turbo_ios? && !song_format.in?(Stream::IOS_SUPPORTED_FORMATS)
+
+    Setting.allow_transcode_lossless ? song.lossless? : false
   end
 
   def flash_errors_message(object, now: false)
@@ -82,17 +84,6 @@ class ApplicationController < ActionController::Base
     cookies.delete(:user_id)
 
     redirect_to new_session_path
-  end
-
-  def browser
-    @browser ||= Browser.new(
-      request.headers["User-Agent"],
-      accept_language: request.headers["Accept-Language"]
-    )
-  end
-
-  def safari?
-    browser.safari? || browser.core_media?
   end
 
   def turbo_ios?

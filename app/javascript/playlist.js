@@ -1,32 +1,13 @@
-import { randomIndex, shuffle } from './helper'
+import { randomIndex } from './helper'
 
 class Playlist {
   orderedSongs = []
   shuffledSongs = []
   isShuffled = false
 
-  update (songIds) {
-    this.orderedSongs = songIds.map((songId) => {
-      return { id: Number(songId) }
-    })
-
-    this.shuffledSongs = shuffle(Object.assign([], this.songs))
-  }
-
-  pushSong (songId, toTheLast = false) {
-    const song = { id: Number(songId) }
-    const playerCurrentIndex = App.player.currentIndex
-
-    let pushIndex = playerCurrentIndex === 0 ? 0 : playerCurrentIndex + 1
-
-    if (toTheLast) {
-      pushIndex = this.length
-    }
-
-    this.orderedSongs.splice(pushIndex, 0, song)
+  insert (index, song) {
+    this.orderedSongs.splice(index, 0, song)
     this.shuffledSongs.splice(randomIndex(this.shuffledSongs.length), 0, song)
-
-    return this.indexOf(songId)
   }
 
   deleteSong (songId) {

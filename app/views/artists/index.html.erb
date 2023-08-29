@@ -1,4 +1,4 @@
-<% page_title_tag t("label.artists"), native: true %>
+<% page_title_tag t("label.artists") %>
 
 <div class='o-container o-container--large'>
   <div class='o-flex o-flex--align-center o-flex--justify-between o-flex--wrap u-mb-large'>
@@ -6,7 +6,7 @@
       <h1 class='u-my-narrow u-mr-small'><%= t("label.artists") %></h1>
     <% end %>
     <div class='<%= "u-ml-auto" if turbo_native? %>'>
-      <%= render partial: "shared/sort_select", locals: {options: @sort_options} %>
+      <%= render partial: "shared/sort_select", locals: {option: @sort_option} %>
     </div>
   </div>
   <% if @artists.empty? %>

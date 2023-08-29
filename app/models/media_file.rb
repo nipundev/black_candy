@@ -6,18 +6,19 @@ class MediaFile
   class << self
     def file_paths
       media_path = File.expand_path(Setting.media_path)
-      Dir.glob("#{media_path}/**/*.{#{SUPPORTED_FORMATS.join(",")}}", File::FNM_CASEFOLD)
+
+      # Because Ruby ignores the FNM_CASEFOLD flag in Dir.glob, case sensitivity depends on your system.
+      # So we need another way to make Dir.glob case-insensitive.
+      # See here: https://github.com/ruby/ruby/pull/4583
+      case_insensitive_supported_formats = SUPPORTED_FORMATS.map do |format|
+        format.chars.map { |char| (char.downcase != char.upcase) ? "[#{char.downcase}#{char.upcase}]" : char }.join
+      end
+
+      Dir.glob("#{media_path}/**/*.{#{case_insensitive_supported_formats.join(",")}}")
     end
 
     def format(file_path)
       File.extname(file_path).downcase.delete(".")
-    end
-
-    def image(file_path)
-      tag = WahWah.open(file_path)
-      image = tag.images.first
-
-      {data: image[:data], format: MIME::Type.new(image[:mime_type]).sub_type} if image
     end
 
     def file_info(file_path)
@@ -36,6 +37,14 @@ class MediaFile
 
     private
 
+    def extract_image_from(tag)
+      image = tag.images.first
+      return unless image.present?
+
+      image_format = Mime::Type.lookup(image[:mime_type]).symbol
+      CarrierWaveStringIO.new("cover.#{image_format}", image[:data]) if image_format.present?
+    end
+
     def get_tag_info(file_path)
       tag = WahWah.open(file_path)
 
@@ -46,7 +55,9 @@ class MediaFile
         albumartist_name: tag.albumartist.presence,
         genre: tag.genre.presence,
         tracknum: tag.track,
-        duration: tag.duration.round
+        duration: tag.duration.round,
+        bit_depth: tag.bit_depth,
+        image: extract_image_from(tag)
       }.tap do |info|
         info[:year] = begin
           Date.strptime(tag.year, "%Y").year
