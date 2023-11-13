@@ -12,7 +12,9 @@ module ApplicationHelper
     return if name.blank?
 
     size_class = options[:size].blank? ? "" : "c-icon--#{options[:size]}"
-    icon_class = ["c-icon", size_class, options[:class]].join(" ")
+    active_class = options[:active] ? "c-icon--active" : ""
+    emphasis_class = options[:emphasis] ? "c-icon--emphasis" : ""
+    icon_class = ["c-icon", size_class, active_class, emphasis_class, options[:class]].join(" ")
 
     tag.svg(
       fill: "currentColor",
@@ -50,11 +52,11 @@ module ApplicationHelper
     params[:controller].in?(Array(controller)) || (path.is_a?(Regexp) ? (path =~ request.path) : (path == request.path))
   end
 
-  def page_title_tag(title, show_on_native: true)
+  def page_title_tag(title)
     title_suffix = " - #{t(:app_name)}"
-    title = "#{title}#{title_suffix unless turbo_native?}"
+    title = "#{title}#{title_suffix unless native_app?}"
 
-    content_for(:title, title) unless turbo_native? && !show_on_native
+    content_for(:title, title)
   end
 
   def current_url

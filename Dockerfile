@@ -1,5 +1,5 @@
 FROM node:18.12.1-alpine AS node
-FROM ruby:3.1.2-alpine AS base
+FROM ruby:3.2.2-alpine AS base
 FROM base AS builder
 
 ENV RAILS_ENV production
@@ -15,7 +15,7 @@ COPY --from=node /opt/yarn-* /opt/yarn
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm  \
   && ln -s /opt/yarn/bin/yarn /usr/local/bin/yarn
 
-RUN apk add --no-cache tzdata postgresql-dev build-base
+RUN apk add --no-cache tzdata libpq-dev build-base
 
 WORKDIR /app
 
@@ -30,7 +30,7 @@ RUN bundle config --local without 'development test' \
 
 COPY . /app
 
-RUN bundle exec rails assets:precompile SECRET_KEY_BASE=fake_secure_for_compile \
+RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile \
   && yarn cache clean \
   && rm -rf node_modules tmp/cache/* /tmp/* yarn.lock log/production.log app/javascript/* app/assets/*
 
@@ -39,11 +39,10 @@ FROM base
 
 ENV LANG C.UTF-8
 ENV RAILS_ENV production
-ENV RAILS_SERVE_STATIC_FILES true
 
 RUN apk add --no-cache \
   tzdata \
-  postgresql-dev \
+  libpq \
   imagemagick \
   ffmpeg \
   curl

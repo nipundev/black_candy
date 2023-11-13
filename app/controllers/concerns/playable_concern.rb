@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Playable
+module PlayableConcern
   extend ActiveSupport::Concern
 
   included do
@@ -9,12 +9,12 @@ module Playable
   end
 
   def play
-    raise BlackCandy::Error::Forbidden if @song_ids.blank?
+    raise BlackCandy::Forbidden if @song_ids.blank?
 
     @playlist = Current.user.current_playlist
     @playlist.replace(@song_ids)
 
-    unless turbo_native?
+    unless native_app?
       @pagy, @songs = pagy(@playlist.songs.includes(:artist))
       redirect_to current_playlist_songs_path(playable: true)
     end

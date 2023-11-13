@@ -19,11 +19,10 @@ module Api
       end
 
       def update
-        from_position = Integer(params[:from_position])
-        to_position = Integer(params[:to_position])
+        moving_song = @playlist.playlists_songs.find_by!(song_id: params[:song_id])
+        destination_song = @playlist.playlists_songs.find_by!(song_id: params[:destination_song_id])
 
-        playlists_song = @playlist.playlists_songs.find_by(position: from_position)
-        playlists_song.update(position: to_position)
+        moving_song.update(position: destination_song.position)
       end
 
       def create
@@ -35,6 +34,8 @@ module Api
           current_song_position = @playlist.playlists_songs.find_by(song_id: params[:current_song_id])&.position.to_i
           @playlist.playlists_songs.create(song_id: @song.id, position: current_song_position + 1)
         end
+      rescue ActiveRecord::RecordNotUnique
+        raise BlackCandy::DuplicatePlaylistSong
       end
 
       private
